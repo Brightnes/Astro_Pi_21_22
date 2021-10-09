@@ -36,8 +36,9 @@ def grab_movement():
     # Inititating motion detection
     pir = MotionSensor(pin=12)
     pir.wait_for_motion() # Pause the script until the device is activated, or the timeout is reached.
-    moving_creatures_nearby==1
+    moving_creatures_nearby=1
     pir.wait_for_no_motion() # Pause the script until the device is deactivated, or the timeout is reached.
+    moving_creatures_nearby=0
 
 def create_csv(data_file):
     with open(data_file, 'w') as f:
