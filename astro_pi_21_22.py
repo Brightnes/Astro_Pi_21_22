@@ -26,10 +26,10 @@ def brightness_check():
     light = sense.color.clear
     if light < 64:
         # Dark
-        envir_light==0
+        envir_light=0
     else:
         # Light
-        envir_light==1
+        envir_light=1
 
 
 def grab_movement():
