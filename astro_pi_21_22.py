@@ -18,6 +18,7 @@ ISS_shadowing=0
 envir_light=0
 moving_creatures_nearby=0
 i=0 # For loop numbering purpose
+count_back = 5 # see doing_stuff function
 
 # Function definitions
 
@@ -88,7 +89,7 @@ def capture(camera, image):
     # Capture the image
     camera.capture(image)
 
-def doing_stuff(index):
+def doing_stuff(index, light_value):
     try:
         index +=1
         logger.info(f"Loop number {index} started")
@@ -100,15 +101,25 @@ def doing_stuff(index):
         camera.start_preview()
         # Camera warm-up time
         sleep(2)
-        camera.capture(f"{base_folder}/image_{index:04d}.jpg")# Check if photo numbering is ok.
+        if light_value == 0:
+            capture(camera,f"{base_folder}/image_{index:04d}.jpg")# Check if photo numbering is ok.
         camera.close()# I guess opening and closing the camera at each shot is better.
         #(base_folder/"image.jpg").unlink() # Uncomment for life in space
 
         sleep(60)
     except Exception as e:
         logger.error(f'{e.__class__.__name__}: {e})')
-
-
+"""
+def doing_other_stuff(index):
+    #if brightness is > 0.4: # then get the photo as well
+    # try:
+    #    for a in range 4:
+    #       camera.start_preview()
+        # Camera warm-up time
+        #sleep(2)
+        #capture(camera,f"{base_folder}/image_{index:04d}.jpg")# Check if photo numbering is ok.
+        #camera.close()
+"""
 # Object names definitions
 sense = SenseHat()
 camera = PiCamera()
@@ -134,9 +145,12 @@ start_time = datetime.now()
 now_time = datetime.now()
 # Run a loop for 2 minutes
 while (now_time < start_time + timedelta(minutes=174)):# properly edit timedelta value
-    doing_stuff(i)
+    dark_or_shining()
+    doing_stuff(i, ISS_shadowing)
     sleep(1)
     # Update the current time
     now_time = datetime.now()
     i +=1 # Update loop numbering
+
+
 
