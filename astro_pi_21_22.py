@@ -1,5 +1,7 @@
 """
 No more than 3 GB of data.
+Edit 0.07 brightness value- get exif tags value from photos
+mind check variable values through funtions
 """
 
 from sense_hat import SenseHat
@@ -14,6 +16,7 @@ from skyfield.api import load
 from picamera import PiCamera
 
 # Variables definitions and settings
+earth_twilight=0
 ISS_shadowing=0
 envir_light=0
 moving_creatures_nearby=0
@@ -23,6 +26,7 @@ count_back = 5 # see doing_stuff function
 # Function definitions
 
 def brightness_check():
+    # Not the camera, the light sensor
     sense.color.gain = 16
     light = sense.color.clear
     if light < 64:
@@ -31,6 +35,16 @@ def brightness_check():
     else:
         # Light
         envir_light=1
+
+def chk4twilight(camera):
+    # if ISS in shadow and brightness of photo above 0.007, say it's twilight, else not twilight (day or late night)
+    global ISS_shadowing
+    
+    if ISS_shadowing == 1 and camera.exif_tags["BrightnessValue"]>=0.07:
+        earth_twilight = 1
+    else:
+        earth_twilight = 0
+    
 
 
 def grab_movement():
@@ -72,7 +86,7 @@ def convert(angle):
     exif_angle = f'{degrees:.0f}/1,{minutes:.0f}/1,{seconds*10:.0f}/10'
     return sign < 0, exif_angle
 
-def capture(camera, image):
+def capture(camera, im):
     """Use `camera` to capture an `image` file with lat/long EXIF data."""
     point = ISS.coordinates()
 
@@ -87,39 +101,63 @@ def capture(camera, image):
     camera.exif_tags['GPS.GPSLongitudeRef'] = "W" if west else "E"
 
     # Capture the image
-    camera.capture(image)
+    camera.capture(im)
 
-def doing_stuff(index, light_value):
+def doing_stuff():
+    global i
     try:
-        index +=1
+        index =i+1
         logger.info(f"Loop number {index} started")
         location = ISS.coordinates()
         lat = location.latitude.degrees
         long = location.longitude.degrees
         row = (datetime.now(),lat, long, round(sense.temperature,4), round(sense.humidity,4))# Add entries if needed
         add_csv_data(data_file, row)
-        camera.start_preview()
-        # Camera warm-up time
-        sleep(2)
-        if light_value == 0:
-            capture(camera,f"{base_folder}/image_{index:04d}.jpg")# Check if photo numbering is ok.
+        photo = f"{base_folder}/image_{index:04d}.jpg"
+        capture(camera,photo)# Check if photo numbering is ok.
         camera.close()# I guess opening and closing the camera at each shot is better.
         #(base_folder/"image.jpg").unlink() # Uncomment for life in space
+        i +=1
 
-        sleep(60)
+        sleep(60)# edit to get more photos
     except Exception as e:
         logger.error(f'{e.__class__.__name__}: {e})')
-"""
-def doing_other_stuff(index):
-    #if brightness is > 0.4: # then get the photo as well
-    # try:
-    #    for a in range 4:
-    #       camera.start_preview()
-        # Camera warm-up time
-        #sleep(2)
-        #capture(camera,f"{base_folder}/image_{index:04d}.jpg")# Check if photo numbering is ok.
-        #camera.close()
-"""
+
+def doing_other_stuff():
+    global i
+    try:
+        for a in range 4:
+            index =i+1
+            logger.info(f"Loop number {index} started")
+            location = ISS.coordinates()
+            lat = location.latitude.degrees
+            long = location.longitude.degrees
+            row = (datetime.now(),lat, long, round(sense.temperature,4), round(sense.humidity,4))# Add entries if needed
+            add_csv_data(data_file, row)
+            photo = f"{base_folder}/image_{index:04d}.jpg"
+            capture(camera,photo)# Check if photo numbering is ok.
+            camera.close()# I guess opening and closing the camera at each shot is better.
+            #(base_folder/"image.jpg").unlink() # Uncomment for life in space
+            i +=1
+            sleep(60)# edit to get more photos
+    except Exception as e:
+        logger.error(f'{e.__class__.__name__}: {e})')
+
+def doing_some_other_stuff():
+    global i
+    try:
+        index =i+1
+        logger.info(f"Loop number {index} started")
+        location = ISS.coordinates()
+        lat = location.latitude.degrees
+        long = location.longitude.degrees
+        row = (datetime.now(),lat, long, round(sense.temperature,4), round(sense.humidity,4))# Add entries if needed
+        add_csv_data(data_file, row)
+        i +=1
+        sleep(60)# edit to get more photos
+    except Exception as e:
+        logger.error(f'{e.__class__.__name__}: {e})')
+
 # Object names definitions
 sense = SenseHat()
 camera = PiCamera()
@@ -146,11 +184,21 @@ now_time = datetime.now()
 # Run a loop for 2 minutes
 while (now_time < start_time + timedelta(minutes=174)):# properly edit timedelta value
     dark_or_shining()
-    doing_stuff(i, ISS_shadowing)
+    camera.start_preview()
+    # Camera warm-up time
+    sleep(2)
+    chck4twilight(camera)
+    if ISS_shadowing == 0:
+        doing_stuff()
+    elif ISS_shadowing == 1 and earth_twilight == 1:
+        doing_other_stuff()
+    else:
+        doing_some_other_stuff()
     sleep(1)
     # Update the current time
     now_time = datetime.now()
-    i +=1 # Update loop numbering
+
+
 
 
 
