@@ -7,8 +7,8 @@ mind check variable values through funtions
 from sense_hat import SenseHat
 from gpiozero import MotionSensor # Comment out if I do not use  PIR
 from pathlib import Path
-from datetime import datetime
-from time import sleeep
+from datetime import datetime, timedelta
+from time import sleep
 import csv
 from logzero import logger, logfile
 from orbit import ISS
@@ -36,7 +36,7 @@ def brightness_check():
         # Light
         envir_light=1
 
-def chk4twilight(camera):
+def chck4twilight(camera):
     # if ISS in shadow and brightness of photo above 0.007, say it's twilight, else not twilight (day or late night)
     global ISS_shadowing
     
@@ -78,7 +78,6 @@ def convert(angle):
     Convert a `skyfield` Angle to an EXIF-appropriate
     representation (rationals)
     e.g. 98° 34' 58.7 to "98/1,34/1,587/10"
-
     Return a tuple containing a boolean and the converted angle,
     with the boolean indicating if the angle is negative.
     """
@@ -115,7 +114,7 @@ def doing_stuff():
         add_csv_data(data_file, row)
         photo = f"{base_folder}/image_{index:04d}.jpg"
         capture(camera,photo)# Check if photo numbering is ok.
-        camera.close()# I guess opening and closing the camera at each shot is better.
+        #camera.close()# I guess opening and closing the camera at each shot is better.
         #(base_folder/"image.jpg").unlink() # Uncomment for life in space
         i +=1
 
@@ -126,7 +125,7 @@ def doing_stuff():
 def doing_other_stuff():
     global i
     try:
-        for a in range 4:
+        for a in range(4):
             index =i+1
             logger.info(f"Loop number {index} started")
             location = ISS.coordinates()
@@ -136,7 +135,7 @@ def doing_other_stuff():
             add_csv_data(data_file, row)
             photo = f"{base_folder}/image_{index:04d}.jpg"
             capture(camera,photo)# Check if photo numbering is ok.
-            camera.close()# I guess opening and closing the camera at each shot is better.
+            #camera.close()# I guess opening and closing the camera at each shot is better.
             #(base_folder/"image.jpg").unlink() # Uncomment for life in space
             i +=1
             sleep(60)# edit to get more photos
@@ -171,6 +170,7 @@ create_csv(data_file)
 ephemeris = load('de421.bsp')
 timescale = load.timescale()
 camera.resolution = (2592, 1944)
+#camera.resolution=camera.MAX_RESOLUTION# Give this instruction a try
 camera.framerate = 15
 
 
@@ -184,7 +184,7 @@ now_time = datetime.now()
 # Run a loop for 2 minutes
 while (now_time < start_time + timedelta(minutes=174)):# properly edit timedelta value
     dark_or_shining()
-    camera.start_preview()
+    #camera.start_preview(alpha=200)
     # Camera warm-up time
     sleep(2)
     chck4twilight(camera)
@@ -195,8 +195,11 @@ while (now_time < start_time + timedelta(minutes=174)):# properly edit timedelta
     else:
         doing_some_other_stuff()
     sleep(1)
+    #camera.stop_preview()
     # Update the current time
     now_time = datetime.now()
+
+
 
 
 
