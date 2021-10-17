@@ -112,10 +112,16 @@ satellite = by_name['ISS (ZARYA)']
 """
 Similar instructions for the moon
 """
+planets = load('de421.bsp')  # ephemeris DE421
+moon=planets['Moon']
+earth = planets['Earth']
+
 t=ts.now()
 
 geocentric = satellite.at(t)
+geocentric_moon = earth.at(t).observe(moon)
 subpoint = wgs84.subpoint(geocentric)
+subpoint_moon = wgs84.subpoint(geocentric_moon)
 #testing:
 print('ISS')
 print('Latitude:')
@@ -140,6 +146,34 @@ print(long_sign, long_value)
 """
 Similar instructions for the Moon
 """
+#testing:
+print('Moon')
+print('Latitude:')
+print(subpoint_moon.latitude)
+print('Longitude:')
+print(subpoint_moon.longitude)
+# Convert Skyfield Angle format to ordinary format
+south, exif_latitude = convert(subpoint_moon.latitude)
+west, exif_longitude = convert(subpoint_moon.longitude)
+
+# Set the EXIF tags specifying the current location-MODIFIED
+lat_value = exif_latitude
+lat_sign = "S" if south else "N"
+long_value = exif_longitude
+long_sign = "W" if west else "E"
+#testing:
+print('Moon latitude converted:')
+print(lat_sign, lat_value)
+print('Moon longitude converted:')
+print(long_sign, long_value)
+
+
+
+
+
+
+
+
 
 
 
