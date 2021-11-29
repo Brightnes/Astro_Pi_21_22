@@ -37,7 +37,7 @@ def brightness_check():
         envir_light=1
 
 def chck4twilight(camera):
-    # if ISS in shadow and brightness of photo above 0.007, say it's twilight, else not twilight (day or late night)
+    # if ISS in shadow and brightness of photo above 0.07, say it's twilight, else not twilight (day or late night)
     global ISS_shadowing
     
     if ISS_shadowing == 1 and camera.exif_tags["BrightnessValue"]>=0.07:
@@ -58,7 +58,7 @@ def grab_movement():
 def create_csv(data_file):
     with open(data_file, 'w') as f:
         writer = csv.writer(f)
-        header = ("Date/time", "Latitude", "Longitude", "Temperature", "Humidity")
+        header = ("Date/time", "Loop number", "Mag field x", "Mag field y","Mag field z", "Acceler x", "Acceler y", "Acceler z", "Latitude", "Longitude")
         writer.writerow(header)
 
 def add_csv_data(data_file, data):
@@ -110,7 +110,18 @@ def doing_stuff():
         location = ISS.coordinates()
         lat = location.latitude.degrees
         long = location.longitude.degrees
-        row = (datetime.now(),lat, long, round(sense.temperature,4), round(sense.humidity,4))# Add entries if needed
+        acceler = sh.get_accelerometer_raw()
+        sleep(0.02)
+        acceler = sh.get_accelerometer_raw()
+        mag_value = sh.get_compass_raw()
+        sleep(0.02)
+        mag_value = sh.get_compass_raw()
+        for el in mag_value:
+            mag_value[el]=round(mag_value[el],3)
+
+        for el in acceler:
+            acceler[el]=round(acceler[el],3)
+        row = (datetime.now(), index, mag_value["x"], mag_value["y"], mag_value["z"], acceler["x"], acceler["y"], acceler["z"], lat, long)# Add entries if needed
         add_csv_data(data_file, row)
         photo = f"{base_folder}/image_{index:04d}.jpg"
         capture(camera,photo)# Check if photo numbering is ok.
@@ -131,7 +142,17 @@ def doing_other_stuff():
             location = ISS.coordinates()
             lat = location.latitude.degrees
             long = location.longitude.degrees
-            row = (datetime.now(),lat, long, round(sense.temperature,4), round(sense.humidity,4))# Add entries if needed
+            acceler = sh.get_accelerometer_raw()
+            sleep(0.02)
+            acceler = sh.get_accelerometer_raw()
+            mag_value = sh.get_compass_raw()
+            sleep(0.02)
+            mag_value = sh.get_compass_raw()
+            for el in mag_value:
+                mag_value[el]=round(mag_value[el],3)
+            for el in acceler:
+                acceler[el]=round(acceler[el],3)
+            row = (datetime.now(),index, mag_value["x"], mag_value["y"], mag_value["z"], acceler["x"], acceler["y"], acceler["z"], lat, long)# Add entries if needed
             add_csv_data(data_file, row)
             photo = f"{base_folder}/image_{index:04d}.jpg"
             capture(camera,photo)# Check if photo numbering is ok.
@@ -150,14 +171,24 @@ def doing_some_other_stuff():
         location = ISS.coordinates()
         lat = location.latitude.degrees
         long = location.longitude.degrees
-        row = (datetime.now(),lat, long, round(sense.temperature,4), round(sense.humidity,4))# Add entries if needed
+        acceler = sh.get_accelerometer_raw()
+        sleep(0.02)
+        acceler = sh.get_accelerometer_raw()
+        mag_value = sh.get_compass_raw()
+        sleep(0.02)
+        mag_value = sh.get_compass_raw()
+        for el in mag_value:
+            mag_value[el]=round(mag_value[el],3)
+        for el in acceler:
+            acceler[el]=round(acceler[el],3)
+        row = (datetime.now(),index, mag_value["x"], mag_value["y"], mag_value["z"], acceler["x"], acceler["y"], acceler["z"], lat, long)# Add entries if needed
         add_csv_data(data_file, row)
         i +=1
         sleep(60)# edit to get more photos
     except Exception as e:
         logger.error(f'{e.__class__.__name__}: {e})')
 
-# Object names definitions
+# Object name definitions
 sense = SenseHat()
 camera = PiCamera()
 
@@ -198,6 +229,7 @@ while (now_time < start_time + timedelta(minutes=174)):# properly edit timedelta
     #camera.stop_preview()
     # Update the current time
     now_time = datetime.now()
+
 
 
 
