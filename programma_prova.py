@@ -1,7 +1,8 @@
 """
 No more than 3 GB of data.
 Edit 0.07 brightness value- get exif tags value from photos
-mind check variable values through functions
+mind check variable values through functions.
+Check 0.09 brightness value on HQ camera sample photos (from ISS or taken on Earth)
 """
 
 from sense_hat import SenseHat
@@ -58,14 +59,14 @@ def dark_or_shining():
 
 
 def create_csv(data_file):
-    with open(data_file, 'w') as f:
+    with open(data_file, 'w', buffering=1) as f:
         writer = csv.writer(f)
         header = ("Date/time", "Loop number", "Pic number", "ISS_shadowing_now", "earth_nightime", "Mag field x", "Mag field y","Mag field z", "Acceler x", "Acceler y", "Acceler z", "Latitude", "Longitude")
         writer.writerow(header)
 
 
 def add_csv_data(data_file, data):
-    with open(data_file, 'a') as f:
+    with open(data_file, 'a', buffering=1) as f:
         writer = csv.writer(f)
         writer.writerow(data)
         
@@ -155,7 +156,7 @@ start_time = datetime.now()
 now_time = datetime.now()
 # Run a loop for 2 minutes
 
-while (now_time < start_time + timedelta(minutes=4)):# properly edit timedelta value
+while (now_time < start_time + timedelta(minutes=90)):# properly edit timedelta value
     ISS_shadowing_now = dark_or_shining()# Try move this function call at the end, setting up ISS_shadowing_now at start
     #camera.start_preview(alpha=200)
     # Camera warm-up time
